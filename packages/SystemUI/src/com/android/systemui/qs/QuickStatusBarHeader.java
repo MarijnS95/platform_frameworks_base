@@ -75,6 +75,8 @@ import com.android.systemui.privacy.PrivacyItemController;
 import com.android.systemui.qs.QSDetail.Callback;
 import com.android.systemui.qs.carrier.QSCarrierGroup;
 import com.android.systemui.statusbar.CommandQueue;
+import com.android.systemui.omni.BatteryInfoView;
+import com.android.systemui.statusbar.phone.PhoneStatusBarView;
 import com.android.systemui.statusbar.phone.StatusBarIconController;
 import com.android.systemui.statusbar.phone.StatusBarIconController.TintedIconManager;
 import com.android.systemui.statusbar.phone.StatusBarWindowView;
@@ -159,6 +161,8 @@ public class QuickStatusBarHeader extends RelativeLayout implements
     private final UiEventLogger mUiEventLogger;
     // Used for RingerModeTracker
     private final LifecycleRegistry mLifecycle = new LifecycleRegistry(this);
+
+    private BatteryInfoView mBatteryInfoView;
 
     private boolean mHasTopCutout = false;
     private int mStatusBarPaddingTop = 0;
@@ -284,6 +288,9 @@ public class QuickStatusBarHeader extends RelativeLayout implements
 
         mAllIndicatorsEnabled = mPrivacyItemController.getAllIndicatorsAvailable();
         mMicCameraIndicatorsEnabled = mPrivacyItemController.getMicCameraAvailable();
+
+        mBatteryInfoView = (BatteryInfoView) findViewById(R.id.batteryInfoView);
+        mBatteryInfoView.updateSettings();
     }
 
     public QuickQSPanel getHeaderQsPanel() {
