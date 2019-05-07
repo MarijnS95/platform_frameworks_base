@@ -58,6 +58,7 @@ import com.android.systemui.plugins.ActivityStarter;
 import com.android.systemui.plugins.DarkIconDispatcher;
 import com.android.systemui.plugins.DarkIconDispatcher.DarkReceiver;
 import com.android.systemui.qs.QSDetail.Callback;
+import com.android.systemui.omni.BatteryInfoView;
 import com.android.systemui.statusbar.phone.PhoneStatusBarView;
 import com.android.systemui.statusbar.phone.StatusBarIconController;
 import com.android.systemui.statusbar.phone.StatusBarIconController.TintedIconManager;
@@ -128,6 +129,8 @@ public class QuickStatusBarHeader extends RelativeLayout implements
     private Clock mClockView;
     private DateView mDateView;
     private BatteryMeterView mBatteryRemainingIcon;
+
+    private BatteryInfoView mBatteryInfoView;
 
     private final BroadcastReceiver mRingerReceiver = new BroadcastReceiver() {
         @Override
@@ -205,6 +208,9 @@ public class QuickStatusBarHeader extends RelativeLayout implements
         mBatteryRemainingIcon.setPercentShowMode(BatteryMeterView.MODE_ESTIMATE);
         mRingerModeTextView.setSelected(true);
         mNextAlarmTextView.setSelected(true);
+
+        mBatteryInfoView = (BatteryInfoView) findViewById(R.id.batteryInfoView);
+        mBatteryInfoView.updateSettings();
     }
 
     private void updateStatusText() {
