@@ -125,6 +125,15 @@ public class KeyguardIndicationController implements StateListener,
     private int mBatteryLevel;
     private long mChargingTimeRemaining;
     private float mDisclosureMaxAlpha;
+
+    private int mBatteryTemperature;
+    private int mChargingMaxMicroAmp;
+    private int mChargingMaxMicroVolt;
+    private int mBatteryMilliAmp;
+    private int mBatteryMilliVolt;
+
+    private int mBatteryTempDivider;
+
     private String mMessageToShowOnScreenOn;
 
     private KeyguardUpdateMonitorCallback mUpdateMonitorCallback;
@@ -392,28 +401,34 @@ public class KeyguardIndicationController implements StateListener,
         }
 
         if (mVisible) {
+            mBatteryTempDivider = mContext.getResources()
+                    .getInteger(R.integer.config_battTempDivider);
+
+            // final boolean showBatteryBar = Dependency.get(TunerService.class)
+            //         .getValue(KEYGUARD_SHOW_BATTERY_BAR, 1) == 1;
+            // final boolean showBatteryBarAlways = Dependency.get(TunerService.class)
+            //         .getValue(KEYGUARD_SHOW_BATTERY_BAR_ALWAYS, 0) == 1;
+
             // Walk down a precedence-ordered list of what indication
             // should be shown based on user or device state
             if (mDozing) {
                 // When dozing we ignore any text color and use white instead, because
                 // colors can be hard to read in low brightness.
                 mTextView.setTextColor(Color.WHITE);
+                final String indication = computePowerDetailIndication();
                 if (!TextUtils.isEmpty(mTransientIndication)) {
                     mTextView.switchIndication(mTransientIndication);
                 } else if (!TextUtils.isEmpty(mAlignmentIndication)) {
                     mTextView.switchIndication(mAlignmentIndication);
                     mTextView.setTextColor(mContext.getColor(R.color.misalignment_text_color));
                 } else if (mPowerPluggedIn || mEnableBatteryDefender) {
-                    String indication = computePowerIndication();
                     if (animate) {
                         animateText(mTextView, indication);
                     } else {
                         mTextView.switchIndication(indication);
                     }
                 } else {
-                    String percentage = NumberFormat.getPercentInstance()
-                            .format(mBatteryLevel / 100f);
-                    mTextView.switchIndication(percentage);
+                    mTextView.switchIndication(indication);
                 }
                 return;
             }
@@ -422,10 +437,7 @@ public class KeyguardIndicationController implements StateListener,
             String trustGrantedIndication = getTrustGrantedIndication();
             String trustManagedIndication = getTrustManagedIndication();
 
-            String powerIndication = null;
-            if (mPowerPluggedIn || mEnableBatteryDefender) {
-                powerIndication = computePowerIndication();
-            }
+            String powerIndication = computePowerDetailIndication();
 
             boolean isError = false;
             if (!mKeyguardUpdateMonitor.isUserUnlocked(userId)) {
@@ -457,6 +469,8 @@ public class KeyguardIndicationController implements StateListener,
                 if (DEBUG_CHARGING_SPEED) {
                     powerIndication += ",  " + (mChargingWattage / 1000) + " mW";
                 }
+                // String indication = computePowerDetailIndication();
+                // mTextView.setTextColor(mInitialTextColor);
                 if (animate) {
                     animateText(mTextView, powerIndication);
                 } else {
@@ -525,7 +539,43 @@ public class KeyguardIndicationController implements StateListener,
                 });
     }
 
-    protected String computePowerIndication() {
+    private final String computePowerDetailIndication() {
+        final boolean extendedInfoShowWatt = false;
+
+        final StringBuilder powerString = new StringBuilder();
+
+        if (mPowerPluggedIn) {
+            powerString.append(computePowerIndication());
+        } else {
+            powerString.append(NumberFormat.getPercentInstance().format(mBatteryLevel / 100f));
+        }
+
+        if (mPowerPluggedIn) {
+                // TODO: Localize "at"
+            powerString.append(" at ");
+
+            powerString.append(String.format("%.1fW", mChargingWattage / 1000000f));
+            powerString.append(", ");
+            powerString.append(String.format("%.3fA, %.1fV",
+                    mChargingMaxMicroAmp / 1000000f,
+                    mChargingMaxMicroVolt / 1000000f));
+        }
+
+        powerString.append(String.format(" • %.1f°C", (float) mBatteryTemperature / mBatteryTempDivider));
+
+        if (extendedInfoShowWatt) {
+            powerString.append(String.format(" • %.3fW",
+                    (float)mBatteryMilliVolt * mBatteryMilliAmp / 1000000f));
+        } else {
+            powerString.append(String.format(" • %.3fV", mBatteryMilliVolt / 1000f));
+            powerString.append(String.format(" • %dmA", mBatteryMilliAmp));
+        }
+
+        return powerString.toString();
+    }
+
+    @VisibleForTesting
+    String computePowerIndication() {
         if (mPowerCharged) {
             return mContext.getResources().getString(R.string.keyguard_charged);
         }
@@ -650,6 +700,11 @@ public class KeyguardIndicationController implements StateListener,
         pw.println("  mPowerPluggedIn: " + mPowerPluggedIn);
         pw.println("  mPowerCharged: " + mPowerCharged);
         pw.println("  mChargingSpeed: " + mChargingSpeed);
+        pw.println("  mBatteryTemperature: " + mBatteryTemperature);
+        pw.println("  mBatteryMilliAmp: " + mBatteryMilliAmp);
+        pw.println("  mBatteryMilliVolt: " + mBatteryMilliVolt);
+        pw.println("  mChargingMaxMicroAmp: " + mChargingMaxMicroAmp);
+        pw.println("  mChargingMaxMicroVolt: " + mChargingMaxMicroVolt);
         pw.println("  mChargingWattage: " + mChargingWattage);
         pw.println("  mMessageToShowOnScreenOn: " + mMessageToShowOnScreenOn);
         pw.println("  mDozing: " + mDozing);
@@ -701,10 +756,15 @@ public class KeyguardIndicationController implements StateListener,
                 Log.e(TAG, "Error calling IBatteryStats: ", e);
                 mChargingTimeRemaining = -1;
             }
+            mBatteryTemperature = status.temperature;
+            mBatteryMilliAmp = status.currentMilliAmp;
+            mBatteryMilliVolt = status.currentMilliVolt;
+            mChargingMaxMicroAmp = status.maxChargingMicroAmp;
+            mChargingMaxMicroVolt = status.maxChargingMicroVolt;
             updateIndication(!wasPluggedIn && mPowerPluggedInWired);
             if (mDozing) {
                 if (!wasPluggedIn && mPowerPluggedIn) {
-                    showTransientIndication(computePowerIndication());
+                    showTransientIndication(computePowerDetailIndication());
                     hideTransientIndicationDelayed(HIDE_DELAY_MS);
                 } else if (wasPluggedIn && !mPowerPluggedIn) {
                     hideTransientIndication();
