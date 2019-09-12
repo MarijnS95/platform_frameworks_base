@@ -2489,4 +2489,17 @@
     <!-- Notification content text when switching to a default launcher that supports gesture navigation [CHAR LIMIT=NONE] -->
     <string name="notification_content_gesture_nav_available">Go to Settings to update system navigation</string>
 
+    <string name="tuner_keyguard_battery_percent_title">Show battery percent</string>
+    <string name="tuner_keyguard_battery_percent_summary">Always show battery percent in status bar on charging</string>
+    <string name="tuner_keyguard_show_watt_title">Show charging watts</string>
+    <string name="tuner_keyguard_show_watt_summary">Show charging watts value</string>
+    <string name="tuner_keyguard_show_current_title">Show charging current</string>
+    <string name="tuner_keyguard_show_current_summary">Show charging current values</string>
+    <string name="tuner_keyguard_show_battery_temp_title">Show battery temperature</string>
+    <string name="tuner_keyguard_show_battery_temp_summary">Show battery temperature value</string>
+    <string name="tuner_keyguard_show_battery_bar_title">Show battery bar</string>
+    <string name="tuner_keyguard_show_battery_bar_summary">Show battery bar on charging in always on display</string>
+    <string name="tuner_keyguard_show_battery_bar_always_title">Always show battery bar</string>
+    <string name="tuner_keyguard_show_battery_bar_always_summary">Always show battery bar on charging</string>
+
 </resources>
