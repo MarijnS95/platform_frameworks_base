@@ -151,8 +151,6 @@ public class KeyguardIndicationController implements StateListener,
     private static final String KEYGUARD_SHOW_BATTERY_EXTENDED_INFO = "sysui_keyguard_show_battery_extended_info";
     private static final String KEYGUARD_SHOW_BATTERY_EXTENDED_INFO_WATT = "sysui_keyguard_show_battery_extended_info_watt";
 
-    private BatteryBarView mBatteryBar;
-
     /**
      * Creates a new KeyguardIndicationController and registers callbacks.
      */
@@ -402,12 +400,17 @@ public class KeyguardIndicationController implements StateListener,
         }
 
         if (mVisible) {
-            mShowBatteryTemp = Dependency.get(TunerService.class)
-                    .getValue(KEYGUARD_SHOW_BATTERY_TEMP, 0) == 1;
-            mShowChargingWatts = Dependency.get(TunerService.class)
-                    .getValue(KEYGUARD_SHOW_WATT_ON_CHARGING, 0) == 1;
-            mShowChargingCurrent = Dependency.get(TunerService.class)
-                    .getValue(KEYGUARD_SHOW_CURRENT_ON_CHARGING, 0) == 1;
+            // mShowBatteryTemp = Dependency.get(TunerService.class)
+            //         .getValue(KEYGUARD_SHOW_BATTERY_TEMP, 0) == 1;
+            // mShowChargingWatts = Dependency.get(TunerService.class)
+            //         .getValue(KEYGUARD_SHOW_WATT_ON_CHARGING, 0) == 1;
+            // mShowChargingCurrent = Dependency.get(TunerService.class)
+            //         .getValue(KEYGUARD_SHOW_CURRENT_ON_CHARGING, 0) == 1;
+            // mBatteryTempDivider = mContext.getResources()
+            //         .getInteger(R.integer.config_battTempDivider);
+            mShowBatteryTemp = true;
+            mShowChargingWatts = true;
+            mShowChargingCurrent = true;
             mBatteryTempDivider = mContext.getResources()
                     .getInteger(R.integer.config_battTempDivider);
 
@@ -458,7 +461,7 @@ public class KeyguardIndicationController implements StateListener,
                 mTextView.setTextColor(Utils.getColorError(mContext));
             } else if (mPowerPluggedIn) {
                 String indication = computePowerDetailIndication();
-                mTextView.setTextColor(mInitialTextColor);
+                mTextView.setTextColor(mInitialTextColorState);
                 if (animate) {
                     animateText(mTextView, indication);
                 } else {
@@ -528,10 +531,10 @@ public class KeyguardIndicationController implements StateListener,
     }
 
     private final String computePowerDetailIndication() {
-        final boolean showExtendedInfo = Dependency.get(TunerService.class)
-                .getValue(KEYGUARD_SHOW_BATTERY_EXTENDED_INFO, 1) == 1;
-        final boolean extendedInfoShowWatt = Dependency.get(TunerService.class)
-                .getValue(KEYGUARD_SHOW_BATTERY_EXTENDED_INFO_WATT, 0) == 1;
+        final boolean showExtendedInfo = true ;/* Dependency.get(TunerService.class)
+                .getValue(KEYGUARD_SHOW_BATTERY_EXTENDED_INFO, 1) == 1; */
+        final boolean extendedInfoShowWatt = false; /* Dependency.get(TunerService.class)
+                .getValue(KEYGUARD_SHOW_BATTERY_EXTENDED_INFO_WATT, 0) == 1; */
         // final boolean showPowerDetails =
         //         mShowChargingWatts || mShowChargingCurrent || mShowBatteryTemp;
 
