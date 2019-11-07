@@ -25,7 +25,7 @@ import java.util.List;
 public class BluetoothUtils {
     private static final String TAG = "BluetoothUtils";
 
-    public static final boolean V = false; // verbose logging
+    public static final boolean V = true; // verbose logging
     public static final boolean D = true;  // regular logging
 
     public static final int META_INT_ERROR = -1;

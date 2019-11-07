@@ -55,7 +55,7 @@ import java.util.Map;
  */
 public class LocalBluetoothProfileManager {
     private static final String TAG = "LocalBluetoothProfileManager";
-    private static final boolean DEBUG = BluetoothUtils.D;
+    private static final boolean DEBUG = true; // BluetoothUtils.D;
 
     /**
      * An interface for notifying BluetoothHeadset IPC clients when they have

@@ -187,7 +187,7 @@ final class A2dpSinkProfile implements LocalBluetoothProfile {
 
     public int getNameResource(BluetoothDevice device) {
         // we need to have same string in UI for even SINK Media Audio.
-        return R.string.bluetooth_profile_a2dp;
+        return R.string.bluetooth_profile_a2dp_sink;
     }
 
     public int getSummaryResourceForDevice(BluetoothDevice device) {
