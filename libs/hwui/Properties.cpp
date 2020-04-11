@@ -177,6 +177,7 @@ RenderPipelineType Properties::peekRenderPipelineType() {
     bool useVulkan = use_vulkan().value_or(false);
     char prop[PROPERTY_VALUE_MAX];
     property_get(PROPERTY_RENDERER, prop, useVulkan ? "skiavk" : "skiagl");
+    ALOGI("Using RenderPipeline %s", prop);
     if (!strcmp(prop, "skiavk")) {
         return RenderPipelineType::SkiaVulkan;
     }

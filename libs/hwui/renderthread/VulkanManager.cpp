@@ -476,22 +476,6 @@ Frame VulkanManager::dequeueNextBuffer(VulkanSurface* surface) {
     return Frame(surface->logicalWidth(), surface->logicalHeight(), bufferAge);
 }
 
-struct DestroySemaphoreInfo {
-    PFN_vkDestroySemaphore mDestroyFunction;
-    VkDevice mDevice;
-    VkSemaphore mSemaphore;
-
-    DestroySemaphoreInfo(PFN_vkDestroySemaphore destroyFunction, VkDevice device,
-            VkSemaphore semaphore)
-            : mDestroyFunction(destroyFunction), mDevice(device), mSemaphore(semaphore) {}
-};
-
-static void destroy_semaphore(void* context) {
-    DestroySemaphoreInfo* info = reinterpret_cast<DestroySemaphoreInfo*>(context);
-    info->mDestroyFunction(info->mDevice, info->mSemaphore, nullptr);
-    delete info;
-}
-
 void VulkanManager::swapBuffers(VulkanSurface* surface, const SkRect& dirtyRect) {
     if (CC_UNLIKELY(Properties::waitForGpuCompletion)) {
         ATRACE_NAME("Finishing GPU work");
@@ -521,12 +505,9 @@ void VulkanManager::swapBuffers(VulkanSurface* surface, const SkRect& dirtyRect)
     backendSemaphore.initVulkan(semaphore);
 
     int fenceFd = -1;
-    DestroySemaphoreInfo* destroyInfo = new DestroySemaphoreInfo(mDestroySemaphore, mDevice,
-                                                                 semaphore);
     GrSemaphoresSubmitted submitted =
             bufferInfo->skSurface->flush(SkSurface::BackendSurfaceAccess::kPresent,
-                                         kNone_GrFlushFlags, 1, &backendSemaphore,
-                                         destroy_semaphore, destroyInfo);
+                                         kNone_GrFlushFlags, 1, &backendSemaphore);
     if (submitted == GrSemaphoresSubmitted::kYes) {
         VkSemaphoreGetFdInfoKHR getFdInfo;
         getFdInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_GET_FD_INFO_KHR;
@@ -540,6 +521,12 @@ void VulkanManager::swapBuffers(VulkanSurface* surface, const SkRect& dirtyRect)
         ALOGE("VulkanManager::swapBuffers(): Semaphore submission failed");
         mQueueWaitIdle(mGraphicsQueue);
     }
+
+    // Exporting a semaphore with copy transference via vkGetSemaphoreFdKHR, has the same effect of
+    // destroying the semaphore and creating a new one with the same handle, and the payloads
+    // ownership is move to the Fd we created. Thus the semaphore is in a state that we can delete
+    // it and we don't need to wait on the command buffer we submitted to finish.
+    mDestroySemaphore(mDevice, semaphore, nullptr);
 
     surface->presentCurrentBuffer(dirtyRect, fenceFd);
 }
@@ -640,11 +627,8 @@ status_t VulkanManager::createReleaseFence(sp<Fence>& nativeFence, GrContext* gr
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
 
-    DestroySemaphoreInfo* destroyInfo = new DestroySemaphoreInfo(mDestroySemaphore, mDevice,
-                                                                 semaphore);
     GrSemaphoresSubmitted submitted =
-            grContext->flush(kNone_GrFlushFlags, 1, &backendSemaphore,
-                             destroy_semaphore, destroyInfo);
+            grContext->flush(kNone_GrFlushFlags, 1, &backendSemaphore);
 
     if (submitted == GrSemaphoresSubmitted::kNo) {
         ALOGE("VulkanManager::createReleaseFence: Failed to submit semaphore");
@@ -661,6 +645,13 @@ status_t VulkanManager::createReleaseFence(sp<Fence>& nativeFence, GrContext* gr
     int fenceFd = 0;
 
     err = mGetSemaphoreFdKHR(mDevice, &getFdInfo, &fenceFd);
+
+    // Exporting a semaphore with copy transference via vkGetSemahporeFdKHR, has the same effect of
+    // destroying the semaphore and creating a new one with the same handle, and the payloads
+    // ownership is move to the Fd we created. Thus the semahpore is in a state that we can delete
+    // it and we don't need to wait on the command buffer we submitted to finish.
+    mDestroySemaphore(mDevice, semaphore, nullptr);
+
     if (VK_SUCCESS != err) {
         ALOGE("VulkanManager::createReleaseFence: Failed to get semaphore Fd");
         return INVALID_OPERATION;
