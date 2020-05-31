@@ -174,6 +174,7 @@ public class StatusBarIconView extends AnimatedImageView implements StatusIconDi
         mNumberPain.setTextAlign(Paint.Align.CENTER);
         mNumberPain.setColor(context.getColor(R.drawable.notification_number_text_color));
         mNumberPain.setAntiAlias(true);
+        mNumberPain.setTextSize(20.0f);
         setNotification(sbn);
         setScaleType(ScaleType.CENTER);
         mDensity = context.getResources().getDisplayMetrics().densityDpi;
@@ -497,19 +498,21 @@ public class StatusBarIconView extends AnimatedImageView implements StatusIconDi
         final int h = getHeight();
         final Rect r = new Rect();
         mNumberPain.getTextBounds(str, 0, str.length(), r);
+        // Decrease padding:
+        r.inset(4, 4);
         final int tw = r.right - r.left;
         final int th = r.bottom - r.top;
         mNumberBackground.getPadding(r);
         int dw = r.left + tw + r.right;
-        if (dw < mNumberBackground.getMinimumWidth()) {
-            dw = mNumberBackground.getMinimumWidth();
-        }
+        // if (dw < mNumberBackground.getMinimumWidth()) {
+        //     dw = mNumberBackground.getMinimumWidth();
+        // }
         mNumberX = w-r.right-((dw-r.right-r.left)/2);
         int dh = r.top + th + r.bottom;
-        if (dh < mNumberBackground.getMinimumWidth()) {
-            dh = mNumberBackground.getMinimumWidth();
-        }
-        mNumberY = h-r.bottom-((dh-r.top-th-r.bottom)/2);
+        // if (dh < mNumberBackground.getMinimumWidth()) {
+        //     dh = mNumberBackground.getMinimumWidth();
+        // }
+        mNumberY = h-r.bottom-((dh-r.top-th-r.bottom)/2) /*Padding decrease gives some weird offset, negate it*/ + 2;
         mNumberBackground.setBounds(w-dw, h-dh, w, h);
     }
 
