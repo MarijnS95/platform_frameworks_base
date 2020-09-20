@@ -129,7 +129,7 @@ public class KeyguardIndicationController implements StateListener,
     private int mBatteryTemperature;
     private int mChargingMaxMicroAmp;
     private int mChargingMaxMicroVolt;
-    private int mBatteryMilliAmp;
+    private int mBatteryMicroAmp;
     private int mBatteryMilliVolt;
 
     private int mBatteryTempDivider;
@@ -564,11 +564,11 @@ public class KeyguardIndicationController implements StateListener,
         powerString.append(String.format(" • %.1f°C", (float) mBatteryTemperature / mBatteryTempDivider));
 
         if (extendedInfoShowWatt) {
-            powerString.append(String.format(" • %.3fW",
-                    (float)mBatteryMilliVolt * mBatteryMilliAmp / 1000000f));
+            powerString.append(String.format(" • %.3fW", (mBatteryMilliVolt / 1000f)
+                    * (mBatteryMicroAmp / 1000000f)));
         } else {
             powerString.append(String.format(" • %.3fV", mBatteryMilliVolt / 1000f));
-            powerString.append(String.format(" • %dmA", mBatteryMilliAmp));
+            powerString.append(String.format(" • %dmA", mBatteryMicroAmp / 1000));
         }
 
         return powerString.toString();
@@ -701,7 +701,7 @@ public class KeyguardIndicationController implements StateListener,
         pw.println("  mPowerCharged: " + mPowerCharged);
         pw.println("  mChargingSpeed: " + mChargingSpeed);
         pw.println("  mBatteryTemperature: " + mBatteryTemperature);
-        pw.println("  mBatteryMilliAmp: " + mBatteryMilliAmp);
+        pw.println("  mBatteryMicroAmp: " + mBatteryMicroAmp);
         pw.println("  mBatteryMilliVolt: " + mBatteryMilliVolt);
         pw.println("  mChargingMaxMicroAmp: " + mChargingMaxMicroAmp);
         pw.println("  mChargingMaxMicroVolt: " + mChargingMaxMicroVolt);
@@ -757,7 +757,7 @@ public class KeyguardIndicationController implements StateListener,
                 mChargingTimeRemaining = -1;
             }
             mBatteryTemperature = status.temperature;
-            mBatteryMilliAmp = status.currentMilliAmp;
+            mBatteryMicroAmp = status.currentMicroAmp;
             mBatteryMilliVolt = status.currentMilliVolt;
             mChargingMaxMicroAmp = status.maxChargingMicroAmp;
             mChargingMaxMicroVolt = status.maxChargingMicroVolt;

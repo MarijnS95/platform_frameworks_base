@@ -2577,7 +2577,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
             return true;
         }
 
-        if (current.currentMilliAmp != old.currentMilliAmp) {
+        if (current.currentMicroAmp != old.currentMicroAmp) {
             return true;
         }
 

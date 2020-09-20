@@ -53,7 +53,7 @@ public class BatteryStatus {
     public final int plugged;
     public final int health;
     public final int temperature;
-    public final int currentMilliAmp;
+    public final int currentMicroAmp;
     public final int currentMilliVolt;
     public final int maxChargingMicroAmp;
     public final int maxChargingMicroVolt;
@@ -62,14 +62,14 @@ public class BatteryStatus {
     public BatteryStatus(int status, int level, int plugged, int health,
             int maxChargingWattage,
             int temperature,
-            int currentMilliAmp, int currentMilliVolt,
+            int currentMicroAmp, int currentMilliVolt,
             int maxChargingMicroAmp, int maxChargingMicroVolt) {
         this.status = status;
         this.level = level;
         this.plugged = plugged;
         this.health = health;
         this.temperature = temperature;
-        this.currentMilliAmp = currentMilliAmp;
+        this.currentMicroAmp = currentMicroAmp;
         this.currentMilliVolt = currentMilliVolt;
         this.maxChargingMicroAmp = maxChargingMicroAmp;
         this.maxChargingMicroVolt = maxChargingMicroVolt;
@@ -84,7 +84,7 @@ public class BatteryStatus {
 
         temperature = batteryChangedIntent.getIntExtra(EXTRA_TEMPERATURE, Integer.MIN_VALUE);
 
-        currentMilliAmp = batteryChangedIntent.getIntExtra(EXTRA_CURRENT, -1);
+        currentMicroAmp = batteryChangedIntent.getIntExtra(EXTRA_CURRENT, -1);
         currentMilliVolt = batteryChangedIntent.getIntExtra(EXTRA_VOLTAGE, -1);
 
         maxChargingMicroAmp = batteryChangedIntent.getIntExtra(EXTRA_MAX_CHARGING_CURRENT, -1);
@@ -174,6 +174,6 @@ public class BatteryStatus {
     @Override
     public String toString() {
         return "BatteryStatus{status=" + status + ",level=" + level + ",plugged=" + plugged
-                + ",health=" + health + ",currentMilliAmp=" + currentMilliAmp + ",maxChargingWattage=" + maxChargingWattage + "}";
+                + ",health=" + health + ",currentMicroAmp=" + currentMicroAmp + ",maxChargingWattage=" + maxChargingWattage + "}";
     }
 }

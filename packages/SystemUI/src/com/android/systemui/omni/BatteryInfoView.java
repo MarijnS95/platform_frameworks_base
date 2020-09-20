@@ -87,12 +87,16 @@ public class BatteryInfoView extends TextView {
                 final int plugged = intent.getIntExtra(EXTRA_PLUGGED, 0);
                 final int level = intent.getIntExtra(EXTRA_LEVEL, 0);
                 final int temperature = intent.getIntExtra(EXTRA_TEMPERATURE, Integer.MIN_VALUE);
+
+                final int currentMicroAmp = intent.getIntExtra(EXTRA_CURRENT, -1);
+
                 // NOTE: HealthInfo documentation says healthInfo.batteryVoltage is in uV,
-                // but it is divided by 1000 in healthd and thus in mV. Same for current.
+                // but it is divided by 1000 in healthd and thus in mV.
                 // See the kernel ABI: sysfs paths provide info in micro{volts,amps},
                 // but there's an erroneous division:
-                // https://android.googlesource.com/platform/system/core/+/android-9.0.0_r35/healthd/BatteryMonitor.cpp#214
-                final int currentMilliAmp = intent.getIntExtra(EXTRA_CURRENT, -1);
+                // https://android.googlesource.com/platform/system/core/+/android-10.0.0_r45/healthd/BatteryMonitor.cpp#216
+                // This was fixed for amps only in
+                // https://android.googlesource.com/platform/system/core/+/7cc7a54abc3260fce02f3fd22ce0a38122941d60%5E%21/#F0
                 final int currentMilliVolt = intent.getIntExtra(EXTRA_VOLTAGE, -1);
 
                 final int maxChargingMicroAmp = intent.getIntExtra(EXTRA_MAX_CHARGING_CURRENT, -1);
@@ -122,18 +126,19 @@ public class BatteryInfoView extends TextView {
                     // indication += String.format(" at %.3fA, %.1fV", maxChargingMicroAmp /
                     // 1000000.0f,
                     // maxChargingMicroVolt / 1000000.0f);
-                    indication = String.format("%.3fA, %.1fV", maxChargingMicroAmp / 1000000.0f,
-                            maxChargingMicroVolt / 1000000.0f);
+                    indication = String.format("%.3fA, %.1fV", maxChargingMicroAmp / 1000000f,
+                            maxChargingMicroVolt / 1000000f);
 
                     indication += " • ";
                 }
 
                 indication += String.format("%.1f°C", temperature / 10.f);
                 if (extendedInfoShowWatt) {
-                    indication += String.format(" • %.3fW", currentMilliVolt * currentMilliAmp / 1000000.0f);
+                    indication += String.format(" • %.3fW", (currentMilliVolt / 1000f)
+                            * (currentMicroAmp / 1000000f));
                 } else {
-                    indication += String.format(" • %.3fV", currentMilliVolt / 1000.0f);
-                    indication += String.format(" • %dmA", currentMilliAmp);
+                    indication += String.format(" • %.3fV", currentMilliVolt / 1000f);
+                    indication += String.format(" • %dmA", currentMicroAmp / 1000);
                 }
 
                 if (!indication.equals(getText())) {
